@@ -10,17 +10,19 @@ async function main() {
 
     const channel = await connection.createChannel()
 
-    await channel.assertQueue('minha_fila', {
+    channel.assertQueue('minha_fila', {
         durable: true
     })
 
-    for (let i = 0; i <= 100; i++) {
-        channel.publish('', 'minha_fila', Buffer.from(`Minha mensagem ${i}`))
-    }
-    
-    await channel.close()
-    await connection.close()
-    
+    channel.prefetch(5)
+
+    channel.consume('minha_fila', (data) => {
+        console.log(data.content.toString())
+
+        setTimeout(() => {
+            channel.ack(data)
+        }, 5000)
+    })
 }
 
 main()
